@@ -1,0 +1,31 @@
+%Compute the achievable rate in single-cell and multi-cell scenarios with
+%ZF processing and imperfect CSI. 
+
+
+function [EE_value,sum_Rate,avg_RFPower] = functionCalculateEEMulticellZF(alpha,M,K,Ijl_PC,Ijl_nonPC,tauUL,Bsigma2Sxeta,A,circuitpower,prelogFactor)
+
+
+%The design parameter alpha (proportional to transmit power) must be positive
+if alpha >= 0
+    
+    %Vector with average relative channel attenuations from the interfering
+    %cells that cause pilot contamination and for the serving cell itself,
+    %which gives a relative attenuation of one.
+    IC_PC_Extended = [Ijl_PC; 1];
+    
+    %Compute the SINR that each UE achieves, according to Lemma 6.
+    SINR = alpha*(M-K) / ( alpha*(M-K)*sum(Ijl_PC) + (1+sum(Ijl_PC)+1/(alpha*K*tauUL)) * ( 1 + K*alpha*sum(Ijl_nonPC) + K*alpha*( sum(IC_PC_Extended)^2 - sum(IC_PC_Extended.*IC_PC_Extended) + 1/(alpha*K*tauUL)   )/( sum(IC_PC_Extended) + 1/(alpha*K*tauUL) )  ) );
+    
+    sum_Rate = prelogFactor*log2(1+SINR); %Compute the corresponding sum rate
+    avg_RFPower = Bsigma2Sxeta*K*alpha; %Compute the corresponding RF power
+    EE_value = sum_Rate / ( avg_RFPower + circuitpower + A*sum_Rate ); %Compute the corresponding EE
+    
+else
+    
+    %All the parameters are zero when alpha<0, which means that there is no
+    %transmit power and thus the EE and rates are zero.
+    EE_value = 0;
+    sum_Rate = 0;
+    avg_RFPower = 0;
+    
+end
